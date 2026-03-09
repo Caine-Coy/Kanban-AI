@@ -6,6 +6,7 @@ export interface CreateTicketData {
   description: string;
   requirements?: string;
   status?: TicketStatus;
+  projectId?: string;
 }
 
 export interface UpdateTicketData {
@@ -17,6 +18,7 @@ export interface UpdateTicketData {
   requirements?: string;
   testCommand?: string;
   testTimeout?: number;
+  projectId?: string;
 }
 
 export function createTicket(data: CreateTicketData): Ticket {
@@ -25,11 +27,11 @@ export function createTicket(data: CreateTicketData): Ticket {
   const now = new Date().toISOString();
 
   const stmt = db.prepare(`
-    INSERT INTO tickets (id, title, description, status, requirements, createdAt, updatedAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO tickets (id, title, description, status, requirements, projectId, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  stmt.run(id, data.title, data.description, data.status || 'BACKLOG', data.requirements || null, now, now);
+  stmt.run(id, data.title, data.description, data.status || 'BACKLOG', data.requirements || null, data.projectId || null, now, now);
 
   return {
     id,
@@ -37,6 +39,7 @@ export function createTicket(data: CreateTicketData): Ticket {
     description: data.description,
     status: data.status || 'BACKLOG',
     requirements: data.requirements || undefined,
+    projectId: data.projectId || undefined,
     createdAt: new Date(now),
     updatedAt: new Date(now),
   };
@@ -52,20 +55,34 @@ export function getTicketById(id: string): Ticket | undefined {
   return mapRowToTicket(row);
 }
 
-export function getAllTickets(): Ticket[] {
+export function getAllTickets(projectId?: string): Ticket[] {
   const db = getDatabase();
-  const stmt = db.prepare('SELECT * FROM tickets ORDER BY createdAt DESC');
-  const rows = stmt.all() as any[];
-
-  return rows.map(mapRowToTicket);
+  let stmt;
+  
+  if (projectId) {
+    stmt = db.prepare('SELECT * FROM tickets WHERE projectId = ? ORDER BY createdAt DESC');
+    const rows = stmt.all(projectId) as any[];
+    return rows.map(mapRowToTicket);
+  } else {
+    stmt = db.prepare('SELECT * FROM tickets ORDER BY createdAt DESC');
+    const rows = stmt.all() as any[];
+    return rows.map(mapRowToTicket);
+  }
 }
 
-export function getTicketsByStatus(status: TicketStatus): Ticket[] {
+export function getTicketsByStatus(status: TicketStatus, projectId?: string): Ticket[] {
   const db = getDatabase();
-  const stmt = db.prepare('SELECT * FROM tickets WHERE status = ? ORDER BY createdAt DESC');
-  const rows = stmt.all(status) as any[];
-
-  return rows.map(mapRowToTicket);
+  let stmt;
+  
+  if (projectId) {
+    stmt = db.prepare('SELECT * FROM tickets WHERE status = ? AND projectId = ? ORDER BY createdAt DESC');
+    const rows = stmt.all(status, projectId) as any[];
+    return rows.map(mapRowToTicket);
+  } else {
+    stmt = db.prepare('SELECT * FROM tickets WHERE status = ? ORDER BY createdAt DESC');
+    const rows = stmt.all(status) as any[];
+    return rows.map(mapRowToTicket);
+  }
 }
 
 export function updateTicket(id: string, data: UpdateTicketData): Ticket | undefined {

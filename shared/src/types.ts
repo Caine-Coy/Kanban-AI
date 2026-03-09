@@ -13,6 +13,7 @@ export interface Ticket {
   updatedAt: Date;
   requirements?: string;
   tests?: TestConfig;
+  projectId?: string;
 }
 
 export type TicketStatus = 'BACKLOG' | 'TODO' | 'IN_PROGRESS' | 'REVIEW' | 'DONE';
@@ -27,6 +28,17 @@ export interface Column {
   title: string;
   status: TicketStatus;
   order: number;
+}
+
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  gitRemote: string;
+  githubOwner?: string;
+  githubRepo?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface Agent {

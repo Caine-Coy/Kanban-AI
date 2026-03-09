@@ -1,6 +1,74 @@
 import { test, expect } from './fixtures';
 
 /**
+ * Test: Drag and Drop Ticket Movement
+ */
+test.describe('Drag and Drop', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+  });
+
+  test('drag ticket from Backlog to TODO', async ({ page, createTicket }) => {
+    // Create a ticket in Backlog
+    await createTicket('Drag Test Ticket', 'Testing drag functionality');
+    
+    // Verify ticket is in Backlog
+    const backlogColumn = page.locator('h2:has-text("Backlog")').first();
+    const backlogContainer = backlogColumn.locator('xpath=../..');
+    await expect(backlogContainer.locator('[role="button"]:has-text("Drag Test Ticket")')).toBeVisible();
+    
+    // Drag to TODO
+    const ticket = backlogContainer.locator('[role="button"]:has-text("Drag Test Ticket")').first();
+    const todoColumn = page.locator('h2:has-text("TODO")').first();
+    const todoContainer = todoColumn.locator('xpath=../..');
+    
+    await ticket.dragTo(todoColumn);
+    
+    // Verify ticket is now in TODO
+    await expect(todoContainer.locator('[role="button"]:has-text("Drag Test Ticket")')).toBeVisible({ timeout: 5000 });
+    await expect(backlogContainer.locator('[role="button"]:has-text("Drag Test Ticket")')).not.toBeVisible();
+  });
+
+  test('drag ticket through all columns', async ({ page, createTicket }) => {
+    // Create a ticket
+    await createTicket('Workflow Test', 'Testing full workflow');
+    
+    const columns = ['Backlog', 'TODO', 'In Progress', 'Review', 'Done'];
+    
+    for (let i = 1; i < columns.length; i++) {
+      const fromColumn = page.locator(`h2:has-text("${columns[i-1]}")`).first();
+      const fromContainer = fromColumn.locator('xpath=../..');
+      const toColumn = page.locator(`h2:has-text("${columns[i]}")`).first();
+      const toContainer = toColumn.locator('xpath=../..');
+      
+      const ticket = fromContainer.locator('[role="button"]:has-text("Workflow Test")').first();
+      await ticket.dragTo(toColumn);
+      
+      // Verify ticket moved
+      await expect(toContainer.locator('[role="button"]:has-text("Workflow Test")')).toBeVisible({ timeout: 5000 });
+    }
+  });
+
+  test('drag ticket back from TODO to Backlog', async ({ page, createTicket, dragTicketToColumn }) => {
+    // Create and move to TODO
+    await createTicket('Back and Forth', 'Moving back');
+    await dragTicketToColumn('Back and Forth', 'TODO');
+    
+    // Drag back to Backlog
+    const todoColumn = page.locator('h2:has-text("TODO")').first();
+    const todoContainer = todoColumn.locator('xpath=../..');
+    const backlogColumn = page.locator('h2:has-text("Backlog")').first();
+    const backlogContainer = backlogColumn.locator('xpath=../..');
+    
+    const ticket = todoContainer.locator('[role="button"]:has-text("Back and Forth")').first();
+    await ticket.dragTo(backlogColumn);
+    
+    // Verify ticket is back in Backlog
+    await expect(backlogContainer.locator('[role="button"]:has-text("Back and Forth")')).toBeVisible({ timeout: 5000 });
+  });
+});
+
+/**
  * End-to-End Test: Hello World Website Creation
  * 
  * This test simulates a complete user workflow:

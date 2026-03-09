@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Ticket, TicketStatus, Column, Agent, AgentTask, Settings } from 'shared';
+import type { Ticket, TicketStatus, Column, Agent, AgentTask, Settings, Project } from 'shared';
 
 const API_BASE = '/api';
 
@@ -9,17 +9,21 @@ export function useBoardStore() {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [tasks, setTasks] = useState<AgentTask[]>([]);
   const [settings, setSettings] = useState<Settings>({} as Settings);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchBoard = async () => {
+  const fetchBoard = async (projectId?: string) => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const [ticketsRes, settingsRes] = await Promise.all([
-        fetch(`${API_BASE}/tickets`),
+      const queryParams = projectId ? `?projectId=${projectId}` : '';
+      const [ticketsRes, settingsRes, projectsRes] = await Promise.all([
+        fetch(`${API_BASE}/tickets${queryParams}`),
         fetch(`${API_BASE}/settings`),
+        fetch(`${API_BASE}/projects`),
       ]);
 
       if (!ticketsRes.ok || !settingsRes.ok) {
@@ -28,9 +32,11 @@ export function useBoardStore() {
 
       const ticketsData = await ticketsRes.json();
       const settingsData = await settingsRes.json();
+      const projectsData = await projectsRes.json();
 
       setTickets(ticketsData);
       setSettings(settingsData);
+      setProjects(projectsData);
 
       // Fetch agents and tasks
       const [agentsRes, tasksRes] = await Promise.all([
@@ -60,12 +66,12 @@ export function useBoardStore() {
     }
   };
 
-  const createTicket = async (data: { title: string; description: string; requirements?: string }) => {
+  const createTicket = async (data: { title: string; description: string; requirements?: string; projectId?: string }) => {
     try {
       const res = await fetch(`${API_BASE}/tickets`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+        body: JSON.stringify({ ...data, projectId: data.projectId || selectedProjectId }),
       });
 
       if (!res.ok) throw new Error('Failed to create ticket');
@@ -152,12 +158,33 @@ export function useBoardStore() {
     }
   };
 
+  const createProject = async (data: { name: string; description?: string; gitRemote: string }) => {
+    try {
+      const res = await fetch(`${API_BASE}/projects`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error('Failed to create project');
+
+      const project = await res.json();
+      setProjects((prev) => [project, ...prev]);
+      return project;
+    } catch (err) {
+      throw err;
+    }
+  };
+
   return {
     tickets,
     columns,
     agents,
     tasks,
     settings,
+    projects,
+    selectedProjectId,
+    setSelectedProjectId,
     isLoading,
     error,
     fetchBoard,
@@ -166,5 +193,6 @@ export function useBoardStore() {
     deleteTicket,
     moveTicket,
     updateSettings,
+    createProject,
   };
 }

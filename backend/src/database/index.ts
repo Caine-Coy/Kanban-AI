@@ -22,6 +22,17 @@ export function setupDatabase(): void {
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS projects (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      gitRemote TEXT NOT NULL DEFAULT 'origin',
+      githubOwner TEXT,
+      githubRepo TEXT,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     CREATE TABLE IF NOT EXISTS tickets (
       id TEXT PRIMARY KEY,
       title TEXT NOT NULL,
@@ -32,8 +43,10 @@ export function setupDatabase(): void {
       requirements TEXT,
       testCommand TEXT,
       testTimeout INTEGER,
+      projectId TEXT,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
-      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
+      updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (projectId) REFERENCES projects(id)
     );
 
     CREATE TABLE IF NOT EXISTS agents (
@@ -61,6 +74,7 @@ export function setupDatabase(): void {
     );
 
     CREATE INDEX IF NOT EXISTS idx_tickets_status ON tickets(status);
+    CREATE INDEX IF NOT EXISTS idx_tickets_projectId ON tickets(projectId);
     CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
     CREATE INDEX IF NOT EXISTS idx_tasks_ticketId ON tasks(ticketId);
   `);

@@ -13,11 +13,12 @@ export const ticketsRouter = Router();
 
 /**
  * GET /api/tickets
- * Get all tickets
+ * Get all tickets (optionally filtered by project)
  */
-ticketsRouter.get('/', (_req, res) => {
+ticketsRouter.get('/', (req, res) => {
   try {
-    const tickets = getAllTickets();
+    const { projectId } = req.query;
+    const tickets = getAllTickets(projectId as string | undefined);
     res.json(tickets);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch tickets' });

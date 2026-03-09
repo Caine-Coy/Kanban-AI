@@ -4,6 +4,7 @@ import { Board } from './components/Board';
 import { SettingsModal } from './components/SettingsModal';
 import { TicketModal } from './components/TicketModal';
 import { AgentPanel } from './components/AgentPanel';
+import { ProjectModal } from './components/ProjectModal';
 import { useBoardStore } from './hooks/useBoardStore';
 import { useWebSocket } from './hooks/useWebSocket';
 import type { Ticket, TicketStatus, Column, Agent, AgentTask } from 'shared';
@@ -15,21 +16,26 @@ function App() {
     agents,
     tasks,
     settings,
+    projects,
+    selectedProjectId,
+    setSelectedProjectId,
     isLoading,
     error,
     fetchBoard,
     moveTicket,
     updateSettings,
+    createProject,
   } = useBoardStore();
 
   const { connected, connect, disconnect } = useWebSocket();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
 
   useEffect(() => {
     // Initial fetch
-    fetchBoard();
+    fetchBoard(selectedProjectId);
     
     // Connect to WebSocket
     connect();
@@ -37,7 +43,7 @@ function App() {
     return () => {
       disconnect();
     };
-  }, []);
+  }, [selectedProjectId]);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -61,6 +67,10 @@ function App() {
   const handleEditTicket = (ticket: Ticket) => {
     setSelectedTicket(ticket);
     setIsTicketModalOpen(true);
+  };
+
+  const handleProjectSelect = (projectId: string) => {
+    setSelectedProjectId(projectId === 'all' ? undefined : projectId);
   };
 
   if (isLoading) {
@@ -96,8 +106,27 @@ function App() {
               >
                 {connected ? 'Connected' : 'Disconnected'}
               </span>
+              {/* Project Selector */}
+              <select
+                value={selectedProjectId || 'all'}
+                onChange={(e) => handleProjectSelect(e.target.value)}
+                className="px-3 py-1 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="all">All Projects</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center gap-3">
+              <button
+                onClick={() => setIsProjectModalOpen(true)}
+                className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors text-sm"
+              >
+                + New Project
+              </button>
               <button
                 onClick={handleCreateTicket}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
@@ -144,6 +173,12 @@ function App() {
           onClose={() => setIsTicketModalOpen(false)}
           ticket={selectedTicket}
           onSuccess={fetchBoard}
+        />
+
+        <ProjectModal
+          isOpen={isProjectModalOpen}
+          onClose={() => setIsProjectModalOpen(false)}
+          onCreateProject={createProject}
         />
       </div>
     </DndContext>

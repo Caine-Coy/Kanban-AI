@@ -46,6 +46,11 @@ export function TicketModal({ isOpen, onClose, ticket, onSuccess }: TicketModalP
         });
 
         if (!res.ok) throw new Error('Failed to update ticket');
+        
+        // Refresh the board after update
+        if (onSuccess) {
+          onSuccess();
+        }
       } else {
         // Create new ticket
         const res = await fetch('/api/tickets', {
