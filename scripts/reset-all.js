@@ -16,6 +16,7 @@ const __dirname = dirname(__filename);
 const projectRoot = join(__dirname, '..');
 const dbPath = join(projectRoot, 'kanban.db');
 const projectsDir = join(projectRoot, 'Projects');
+const testProjectDir = join(projectRoot, 'backend/Projects/test');
 
 console.log('⚠️  FACTORY RESET - This will delete ALL data!\n');
 console.log('This will remove:');
@@ -24,7 +25,8 @@ console.log('  - All projects');
 console.log('  - All tickets');
 console.log('  - All agents');
 console.log('  - All tasks');
-console.log('  - All project folders in Projects/\n');
+console.log('  - All project folders in Projects/');
+console.log('  - All project folders in backend/Projects/ (except test/)\n');
 
 const readline = await import('readline');
 const rl = readline.createInterface({
@@ -56,10 +58,44 @@ try {
     }
   }
 
-  // Delete Projects folder
+  // Delete Projects folder at root level
   if (fs.existsSync(projectsDir)) {
     rmSync(projectsDir, { recursive: true, force: true });
     console.log('✅ Deleted Projects/ folder');
+  }
+
+  // Delete project folders in backend/Projects/ but preserve test/
+  const backendProjectsDir = join(projectRoot, 'backend/Projects');
+  if (fs.existsSync(backendProjectsDir)) {
+    const entries = fs.readdirSync(backendProjectsDir, { withFileTypes: true });
+    for (const entry of entries) {
+      if (entry.isDirectory() && entry.name !== 'test') {
+        rmSync(join(backendProjectsDir, entry.name), { recursive: true, force: true });
+        console.log(`✅ Deleted backend/Projects/${entry.name}/`);
+      }
+    }
+    console.log('✅ Preserved backend/Projects/test/ (required for tests)');
+  }
+
+  // Ensure test project directory exists and is a git repo
+  if (!fs.existsSync(testProjectDir)) {
+    fs.mkdirSync(testProjectDir, { recursive: true });
+    console.log('✅ Created backend/Projects/test/ directory');
+    
+    // Initialize as git repo if not already
+    const { execSync } = await import('child_process');
+    try {
+      execSync('git rev-parse --git-dir', { cwd: testProjectDir, stdio: 'pipe' });
+      console.log('✅ backend/Projects/test/ is already a git repo');
+    } catch {
+      execSync('git init', { cwd: testProjectDir, stdio: 'pipe' });
+      execSync('git checkout -b main', { cwd: testProjectDir, stdio: 'pipe' });
+      // Create a placeholder file
+      fs.writeFileSync(join(testProjectDir, 'README.md'), '# Test Project\n\nThis is a test project for Kanban-AI.\n');
+      execSync('git add .', { cwd: testProjectDir, stdio: 'pipe' });
+      execSync('git commit -m "Initial commit"', { cwd: testProjectDir, stdio: 'pipe' });
+      console.log('✅ Initialized backend/Projects/test/ as git repo');
+    }
   }
 
   console.log('\n✅ Factory reset complete!\n');
