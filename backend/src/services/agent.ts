@@ -167,7 +167,7 @@ export class AgentService {
     if (settings.useOpenRouter && !settings.openRouterKey) {
       throw new Error('OpenRouter is selected but no API key is configured. Please add your OpenRouter API key in Settings.');
     }
-    
+
     const lmStudio = new LMStudioService(
       settings.lmStudioUrl,
       settings.lmStudioModel,
@@ -176,7 +176,27 @@ export class AgentService {
       settings.openRouterModel,
       settings.useOpenRouter
     );
-    const gitService = new GitService();
+
+    // Get project folder path for git operations
+    let gitService: GitService;
+    const ticket = getTicketById(task.ticketId);
+    if (!ticket) {
+      throw new Error('Ticket not found');
+    }
+
+    if (ticket.projectId) {
+      const project = getProjectById(ticket.projectId);
+      if (project?.folderPath) {
+        gitService = new GitService(project.folderPath);
+        console.log(`📂 Using project git repo: ${project.folderPath}`);
+      } else {
+        gitService = new GitService();
+        console.log('📂 Project has no folder, using default repo');
+      }
+    } else {
+      gitService = new GitService();
+      console.log('📂 No project, using default repo');
+    }
 
     // Update task status to RUNNING
     updateTask(task.id, {
@@ -192,11 +212,6 @@ export class AgentService {
     });
 
     try {
-      const ticket = getTicketById(task.ticketId);
-      if (!ticket) {
-        throw new Error('Ticket not found');
-      }
-
       // Add log
       const logs = [`Working on branch: ${task.branch}`];
       updateTask(task.id, { logs });
