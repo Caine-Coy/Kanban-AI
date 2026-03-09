@@ -75,13 +75,27 @@ function App() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
 
-    if (!over) return;
+    if (!over) {
+      // Dropped outside any column - revert
+      console.log('Dropped outside column, reverting');
+      return;
+    }
 
     const ticketId = active.id as string;
     const toStatus = over.id as TicketStatus;
 
     const ticket = tickets.find((t) => t.id === ticketId);
-    if (!ticket || ticket.status === toStatus) return;
+    if (!ticket || ticket.status === toStatus) {
+      // Already in this column or ticket not found
+      return;
+    }
+
+    // Validate status transition
+    const validStatuses: TicketStatus[] = ['BACKLOG', 'TODO', 'IN_PROGRESS', 'REVIEW', 'DONE'];
+    if (!validStatuses.includes(toStatus)) {
+      console.log('Invalid drop target, reverting');
+      return;
+    }
 
     moveTicket(ticketId, ticket.status, toStatus);
   };
@@ -119,24 +133,33 @@ function App() {
   // Show project required overlay if no projects exist
   if (showProjectRequired) {
     return (
-      <DndContext onDragEnd={handleDragEnd}>
-        <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
-          <div className="max-w-md w-full">
-            <div className="bg-slate-800 rounded-lg p-8 text-center">
-              <h1 className="text-2xl font-bold text-white mb-4">Welcome to Kanban-AI! 🎉</h1>
-              <p className="text-slate-400 mb-6">
-                To get started, you need to create your first project. Each project has its own git repository where AI agents will work on tickets.
-              </p>
-              <button
-                onClick={() => setIsProjectModalOpen(true)}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
-              >
-                + Create Your First Project
-              </button>
-            </div>
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+        <div className="max-w-md w-full">
+          <div className="bg-slate-800 rounded-lg p-8 text-center">
+            <h1 className="text-2xl font-bold text-white mb-4">Welcome to Kanban-AI! 🎉</h1>
+            <p className="text-slate-400 mb-6">
+              To get started, you need to create your first project. Each project has its own git repository where AI agents will work on tickets.
+            </p>
+            <button
+              onClick={() => {
+                console.log('Create project button clicked');
+                setIsProjectModalOpen(true);
+              }}
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+            >
+              + Create Your First Project
+            </button>
           </div>
         </div>
-      </DndContext>
+        
+        {/* Project Modal */}
+        <ProjectModal
+          isOpen={isProjectModalOpen}
+          onClose={() => setIsProjectModalOpen(false)}
+          onCreateProject={createProject}
+          isFirstProject={true}
+        />
+      </div>
     );
   }
 

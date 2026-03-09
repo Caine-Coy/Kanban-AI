@@ -1,6 +1,55 @@
 import { test, expect } from './fixtures';
 
 /**
+ * Test: First-time user experience - Project creation required
+ */
+test.describe('First-Time User Experience', () => {
+  test('should show welcome overlay when no projects exist', async ({ page }) => {
+    // Clear all projects first (via API)
+    const projects = await (await fetch('http://localhost:3000/api/projects')).json();
+    for (const project of projects) {
+      await fetch(`http://localhost:3000/api/projects/${project.id}`, { method: 'DELETE' });
+    }
+
+    // Reload page to see welcome overlay
+    await page.reload();
+    
+    // Should see welcome message
+    await expect(page.locator('text=Welcome to Kanban-AI')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('text=Create Your First Project')).toBeVisible();
+    
+    // Board should not be visible
+    await expect(page.locator('h2:has-text("Backlog")')).not.toBeVisible();
+  });
+
+  test('should create first project and show board', async ({ page }) => {
+    // Clear all projects first
+    const projects = await (await fetch('http://localhost:3000/api/projects')).json();
+    for (const project of projects) {
+      await fetch(`http://localhost:3000/api/projects/${project.id}`, { method: 'DELETE' });
+    }
+
+    await page.reload();
+    
+    // Click create project button
+    await page.click('button:has-text("Create Your First Project")');
+    
+    // Fill in project form
+    await page.fill('input[placeholder="My Awesome Project"]', 'Test Project');
+    await page.fill('textarea[placeholder*="Brief description"]', 'Test Description');
+    
+    // Submit
+    await page.click('button:has-text("Create Project")');
+    
+    // Should see success message
+    await page.waitForSelector('text=Project created', { timeout: 5000 });
+    
+    // Board should now be visible
+    await expect(page.locator('h2:has-text("Backlog")')).toBeVisible({ timeout: 10000 });
+  });
+});
+
+/**
  * Test: Drag and Drop Ticket Movement
  */
 test.describe('Drag and Drop', () => {
@@ -27,6 +76,24 @@ test.describe('Drag and Drop', () => {
     // Verify ticket is now in TODO
     await expect(todoContainer.locator('[role="button"]:has-text("Drag Test Ticket")')).toBeVisible({ timeout: 5000 });
     await expect(backlogContainer.locator('[role="button"]:has-text("Drag Test Ticket")')).not.toBeVisible();
+  });
+
+  test('ticket should not disappear when dropped outside columns', async ({ page, createTicket }) => {
+    // Create a ticket
+    await createTicket('Drop Test', 'Testing drop outside');
+    
+    const backlogColumn = page.locator('h2:has-text("Backlog")').first();
+    const backlogContainer = backlogColumn.locator('xpath=../..');
+    const ticket = backlogContainer.locator('[role="button"]:has-text("Drop Test")').first();
+    
+    // Drag and drop outside any column (drop in empty space)
+    const board = page.locator('main');
+    await ticket.dragTo(board, {
+      targetPosition: { x: 10, y: 10 } // Drop in corner, outside columns
+    });
+    
+    // Ticket should still be in Backlog (reverted)
+    await expect(backlogContainer.locator('[role="button"]:has-text("Drop Test")')).toBeVisible({ timeout: 5000 });
   });
 
   test('drag ticket through all columns', async ({ page, createTicket }) => {
