@@ -6,9 +6,10 @@ interface AgentPanelProps {
   tasks: AgentTask[];
   onCreateAgent: (name: string) => Promise<void>;
   onDeleteAgent: (id: string) => Promise<void>;
+  onRetryTask?: (taskId: string) => Promise<void>;
 }
 
-export function AgentPanel({ agents, tasks, onCreateAgent, onDeleteAgent }: AgentPanelProps) {
+export function AgentPanel({ agents, tasks, onCreateAgent, onDeleteAgent, onRetryTask }: AgentPanelProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [newAgentName, setNewAgentName] = useState('');
 
@@ -143,7 +144,18 @@ export function AgentPanel({ agents, tasks, onCreateAgent, onDeleteAgent }: Agen
               <span className="text-slate-300">
                 {task.branch.split('/').pop()?.slice(0, 20)}...
               </span>
-              <TaskStatusBadge status={task.status} />
+              <div className="flex items-center gap-2">
+                <TaskStatusBadge status={task.status} />
+                {task.status === 'FAILED' && onRetryTask && (
+                  <button
+                    onClick={() => onRetryTask(task.id)}
+                    className="px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                    title="Retry failed task"
+                  >
+                    🔄 Retry
+                  </button>
+                )}
+              </div>
             </div>
             {task.error && (
               <div className="text-xs text-red-400 mt-1">

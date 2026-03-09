@@ -114,6 +114,25 @@ function App() {
     setSelectedProjectId(projectId === 'all' ? undefined : projectId);
   };
 
+  const handleRetryTask = async (taskId: string) => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/retry`, {
+        method: 'POST',
+      });
+      
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || 'Failed to retry task');
+      }
+      
+      // Refresh board to show updated task/ticket status
+      fetchBoard(selectedProjectId);
+    } catch (error) {
+      console.error('Failed to retry task:', error);
+      alert('Failed to retry task: ' + (error as Error).message);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -252,6 +271,7 @@ function App() {
               tasks={tasks}
               onCreateAgent={createAgent}
               onDeleteAgent={deleteAgent}
+              onRetryTask={handleRetryTask}
             />
           </aside>
         </div>
