@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { createServer } from 'http';
 import express from 'express';
 import cors from 'cors';
@@ -23,8 +24,8 @@ setupDatabase();
 // Create default agent if none exist
 const idleAgents = getIdleAgents();
 if (idleAgents.length === 0) {
-  createAgent({ name: 'OpenRouter-Agent-1' });
-  console.log('🤖 Default agent created: OpenRouter-Agent-1');
+  createAgent({ name: 'Kanban-Worker-1' });
+  console.log('🤖 Default agent created: Kanban-Worker-1');
 }
 
 // Setup REST API routes

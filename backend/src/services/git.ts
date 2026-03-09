@@ -16,7 +16,10 @@ export class GitService {
   private repoPath: string;
 
   constructor(repoPath?: string) {
-    this.repoPath = repoPath || process.cwd();
+    // Use provided path, or DEFAULT_REPO_PATH env var, or default to backend/Projects/test
+    this.repoPath = repoPath || 
+                    process.env.DEFAULT_REPO_PATH || 
+                    `${process.cwd()}/Projects/test`;
     this.git = simpleGit(this.repoPath);
   }
 
