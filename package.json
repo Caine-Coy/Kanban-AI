@@ -16,7 +16,8 @@
     "test": "npm run test --workspace=backend",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
-    "reset-settings": "node scripts/reset-settings.js"
+    "reset-settings": "node scripts/reset-settings.js",
+    "reset-all": "node scripts/reset-all.js"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.2.1",
