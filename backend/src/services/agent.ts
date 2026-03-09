@@ -127,6 +127,11 @@ export class AgentService {
     console.log(`📦 Model: ${settings.openRouterModel}`);
     console.log('🤖 =========================');
     
+    // Check if OpenRouter is selected but no API key
+    if (settings.useOpenRouter && !settings.openRouterKey) {
+      throw new Error('OpenRouter is selected but no API key is configured. Please add your OpenRouter API key in Settings.');
+    }
+    
     const lmStudio = new LMStudioService(
       settings.lmStudioUrl,
       settings.lmStudioModel,

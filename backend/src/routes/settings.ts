@@ -11,8 +11,11 @@ export const settingsRouter = Router();
 settingsRouter.get('/', (_req, res) => {
   try {
     const settings = getSettings();
-    // Don't send API key to client
-    const safeSettings = { ...settings, openRouterKey: undefined };
+    // Don't send API key to client (unless loaded from env)
+    const safeSettings = { 
+      ...settings, 
+      openRouterKey: process.env.OPENROUTER_KEY ? 'env_loaded' : undefined 
+    };
     res.json(safeSettings);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch settings' });

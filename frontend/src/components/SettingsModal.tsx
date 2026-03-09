@@ -20,6 +20,9 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdateSettings }: S
     }
   }, [isOpen, settings]);
 
+  // Check if API key is loaded from environment (passed from backend)
+  const isKeyFromEnv = settings.openRouterKey === 'env_loaded';
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await onUpdateSettings(formData);
@@ -117,8 +120,14 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdateSettings }: S
                     setFormData({ ...formData, openRouterKey: e.target.value })
                   }
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="sk-or-..."
+                  placeholder={isKeyFromEnv ? 'Loaded from environment' : 'sk-or-...'}
+                  readOnly={isKeyFromEnv}
                 />
+                {isKeyFromEnv && (
+                  <p className="text-xs text-green-400 mt-1">
+                    🔒 API key loaded from environment variable
+                  </p>
+                )}
               </div>
 
               <div>

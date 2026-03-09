@@ -109,6 +109,8 @@ jobs:
           CI: true
           # Set OPENROUTER_KEY secret to enable AI agent tests
           OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
+          OPENROUTER_URL: ${{ secrets.OPENROUTER_URL }}
+          OPENROUTER_MODEL: ${{ secrets.OPENROUTER_MODEL }}
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

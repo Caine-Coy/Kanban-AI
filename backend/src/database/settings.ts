@@ -17,6 +17,28 @@ export function getSettings(): Settings {
     useOpenRouter: true, // Default to OpenRouter for easier setup
   };
 
+  // Load from environment variables (overrides database)
+  if (process.env.OPENROUTER_KEY) {
+    settings.openRouterKey = process.env.OPENROUTER_KEY;
+    console.log('🔑 OpenRouter API key loaded from environment');
+  }
+  if (process.env.OPENROUTER_URL) {
+    settings.openRouterUrl = process.env.OPENROUTER_URL;
+  }
+  if (process.env.OPENROUTER_MODEL) {
+    settings.openRouterModel = process.env.OPENROUTER_MODEL;
+  }
+  if (process.env.GITHUB_TOKEN) {
+    settings.githubToken = process.env.GITHUB_TOKEN;
+  }
+  if (process.env.GITHUB_OWNER) {
+    settings.githubOwner = process.env.GITHUB_OWNER;
+  }
+  if (process.env.GITHUB_REPO) {
+    settings.githubRepo = process.env.GITHUB_REPO;
+  }
+
+  // Load from database (environment variables take precedence)
   for (const row of rows) {
     const value = row.value;
     if (/^\d+$/.test(value)) {
@@ -24,7 +46,10 @@ export function getSettings(): Settings {
     } else if (value === 'true' || value === 'false') {
       settings[row.key] = value === 'true';
     } else {
-      settings[row.key] = value;
+      // Don't override if env var is set
+      if (!process.env.OPENROUTER_KEY || row.key !== 'openRouterKey') {
+        settings[row.key] = value;
+      }
     }
   }
 
