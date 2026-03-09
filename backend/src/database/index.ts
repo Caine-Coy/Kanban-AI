@@ -1,5 +1,13 @@
 import Database from 'better-sqlite3';
 import { v4 as uuidv4 } from 'uuid';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Get the directory of this file to resolve relative paths correctly
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+// Project root is 3 levels up from backend/src/database/index.ts
+const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 let db: Database.Database | null = null;
 
@@ -11,7 +19,10 @@ export function getDatabase(): Database.Database {
 }
 
 export function setupDatabase(): void {
-  db = new Database(':memory:');
+  // Use absolute path to ensure database is always in project root
+  const dbPath = path.join(PROJECT_ROOT, 'kanban.db');
+  
+  db = new Database(dbPath);
   db.pragma('journal_mode = WAL');
 
   // Create tables
