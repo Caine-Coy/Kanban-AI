@@ -254,30 +254,16 @@ Access via **Settings** button in header:
 ### Reset Settings
 
 ```bash
-# Reset settings to defaults (keeps projects, tickets, etc.)
+# Clear all settings and reset to defaults
 npm run reset-settings
-
-# Complete factory reset (deletes EVERYTHING)
-npm run reset-all
 ```
 
-**reset-settings** resets:
+This resets:
 - OpenRouter enabled (`useOpenRouter: true`)
 - Model: `openrouter/free`
 - Git remote: `origin`
 - Test command: `npm test`
 - Test timeout: `60000`
-
-**reset-all** deletes:
-- All settings
-- All projects
-- All tickets
-- All agents
-- All tasks
-- All project folders (`Projects/`)
-- Database files (`kanban.db*`)
-
-After `reset-all`, you'll see the welcome screen and need to create your first project again.
 
 ---
 
@@ -350,8 +336,7 @@ Kanban-AI/
 │   └── tests/           # Playwright E2E tests
 │
 ├── scripts/
-│   ├── reset-settings.js # Settings reset utility
-│   └── reset-all.js      # Complete factory reset
+│   └── reset-settings.js # Settings reset utility
 │
 └── Projects/            # Project repositories (gitignored)
 ```
@@ -376,7 +361,6 @@ npm run test:e2e         # Run E2E tests (Playwright)
 
 # Utilities
 npm run reset-settings   # Reset database settings
-npm run reset-all        # Complete factory reset
 npm run lint             # Run ESLint
 ```
 
@@ -567,10 +551,6 @@ MIT License - See LICENSE file for details
 - **Projects**: `Projects/{project-name}/`
 - **Environment**: `.env` (project root)
 - **Logs**: Console output
-
-### Reset Commands
-- **Reset settings only**: `npm run reset-settings`
-- **Factory reset (all data)**: `npm run reset-all`
 
 ### Support
 - Check [Troubleshooting](#-troubleshooting) section
