@@ -103,6 +103,11 @@ export function setupDatabase(): void {
     { key: 'useOpenRouter', value: 'true' }, // Default to OpenRouter
   ];
 
+  // Add API key from environment if available
+  if (process.env.OPENROUTER_KEY) {
+    defaultSettings.push({ key: 'openRouterKey', value: process.env.OPENROUTER_KEY });
+  }
+
   const insert = db.prepare(`
     INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)
   `);
