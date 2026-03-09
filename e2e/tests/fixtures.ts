@@ -1,4 +1,6 @@
 import { test as base, expect } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
 
 /**
  * Extended test fixture with Kanban-AI specific helpers
@@ -9,6 +11,7 @@ export const test = base.extend<{
   createTicket: (title: string, description: string, requirements?: string) => Promise<void>;
   dragTicketToColumn: (ticketTitle: string, columnTitle: string) => Promise<void>;
   waitForTicketInColumn: (ticketTitle: string, columnTitle: string) => Promise<void>;
+  waitForFilesInProject: (projectFolderPath: string, fileNames: string[], timeoutMs?: number) => Promise<void>;
 }>({
   page: async ({ page }, use) => {
     // Before each test
@@ -101,6 +104,43 @@ export const test = base.extend<{
     };
 
     await use(waitForTicketInColumn);
+  },
+
+  waitForFilesInProject: async ({}, use) => {
+    const waitForFilesInProject = async (projectFolderPath: string, fileNames: string[], timeoutMs: number = 120000) => {
+      const startTime = Date.now();
+      const absolutePath = path.isAbsolute(projectFolderPath)
+        ? projectFolderPath
+        : path.join(process.cwd(), '..', projectFolderPath);
+
+      console.log(`⏳ Waiting for files in: ${absolutePath}`);
+      console.log(`📄 Expected files: ${fileNames.join(', ')}`);
+
+      while (Date.now() - startTime < timeoutMs) {
+        const allFilesExist = fileNames.every(fileName => {
+          const filePath = path.join(absolutePath, fileName);
+          const exists = fs.existsSync(filePath);
+          if (!exists) {
+            console.log(`❌ File not found: ${filePath}`);
+          } else {
+            console.log(`✅ File found: ${filePath}`);
+          }
+          return exists;
+        });
+
+        if (allFilesExist) {
+          console.log(`✅ All files created successfully!`);
+          return;
+        }
+
+        // Wait 2 seconds before checking again
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+      throw new Error(`Timeout waiting for files after ${timeoutMs}ms. Expected: ${fileNames.join(', ')} in ${absolutePath}`);
+    };
+
+    await use(waitForFilesInProject);
   },
 });
 

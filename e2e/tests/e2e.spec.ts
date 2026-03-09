@@ -153,7 +153,8 @@ test.describe('Hello World Website E2E Flow', () => {
     selectProject,
     createTicket,
     dragTicketToColumn,
-    waitForTicketInColumn
+    waitForTicketInColumn,
+    waitForFilesInProject
   }) => {
     // Skip AI-dependent tests in CI
     if (process.env.CI && !process.env.OPENROUTER_KEY) {
@@ -268,10 +269,12 @@ test.describe('Hello World Website E2E Flow', () => {
       await waitForTicketInColumn('Add JavaScript interactivity', 'Review');
     });
 
-    // Step 9: Verify the generated website exists
+    // Step 9: Verify the generated website files exist
     await test.step('Verify generated files', async () => {
-      // This would typically check a preview or the actual generated files
-      // For now, we verify the tickets completed
+      // Wait for agent to create the actual files in the project folder
+      await waitForFilesInProject(project.folderPath, ['index.html', 'styles.css', 'app.js']);
+      
+      // Also verify tickets mention the files
       await expect(page.locator('h2:has-text("Review") + div')).toContainText('index.html');
       await expect(page.locator('h2:has-text("Review") + div')).toContainText('styles.css');
       await expect(page.locator('h2:has-text("Review") + div')).toContainText('app.js');
