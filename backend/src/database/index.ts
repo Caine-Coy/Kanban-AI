@@ -87,7 +87,7 @@ export function setupDatabase(): void {
     { key: 'testCommand', value: 'npm test' },
     { key: 'testTimeout', value: '60000' },
     { key: 'openRouterUrl', value: 'https://openrouter.ai/api/v1' },
-    { key: 'openRouterModel', value: 'google/gemma-3-1b-itb-freetrial:free' },
+    { key: 'openRouterModel', value: 'openrouter/free' },
     { key: 'useOpenRouter', value: 'true' }, // Default to OpenRouter
   ];
 

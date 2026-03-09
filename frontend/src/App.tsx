@@ -34,6 +34,7 @@ function App() {
   const [isTicketModalOpen, setIsTicketModalOpen] = useState(false);
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
+  const [aiProviderStatus, setAiProviderStatus] = useState<{ connected: boolean; service: string } | null>(null);
 
   useEffect(() => {
     // Initial fetch
@@ -41,11 +42,24 @@ function App() {
     
     // Connect to WebSocket
     connect();
+    
+    // Test AI provider connection
+    testAiProvider();
 
     return () => {
       disconnect();
     };
   }, [selectedProjectId]);
+
+  const testAiProvider = async () => {
+    try {
+      const res = await fetch('/api/settings/test-lmstudio');
+      const data = await res.json();
+      setAiProviderStatus(data);
+    } catch (error) {
+      setAiProviderStatus({ connected: false, service: 'Unknown' });
+    }
+  };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -97,17 +111,34 @@ function App() {
         {/* Header */}
         <header className="bg-slate-800 border-b border-slate-700 px-6 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-white">Kanban-AI</h1>
+              {/* WebSocket Status */}
               <span
                 className={`px-2 py-1 text-xs rounded ${
                   connected
                     ? 'bg-green-500/20 text-green-400'
                     : 'bg-red-500/20 text-red-400'
                 }`}
+                title="WebSocket Connection"
               >
-                {connected ? 'Connected' : 'Disconnected'}
+                {connected ? '📡 Connected' : '❌ Disconnected'}
               </span>
+              {/* AI Provider Status */}
+              {aiProviderStatus && (
+                <span
+                  className={`px-2 py-1 text-xs rounded ${
+                    aiProviderStatus.connected
+                      ? 'bg-green-500/20 text-green-400'
+                      : 'bg-red-500/20 text-red-400'
+                  }`}
+                  title={`${aiProviderStatus.service} Connection`}
+                >
+                  {aiProviderStatus.connected
+                    ? `✅ ${aiProviderStatus.service}`
+                    : `❌ ${aiProviderStatus.service}`}
+                </span>
+              )}
               {/* Project Selector */}
               <select
                 value={selectedProjectId || 'all'}

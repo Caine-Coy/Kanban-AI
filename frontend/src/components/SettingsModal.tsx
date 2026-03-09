@@ -31,10 +31,22 @@ export function SettingsModal({ isOpen, onClose, settings, onUpdateSettings }: S
     setTestResult(null);
 
     try {
+      // First save the settings to ensure API key is stored
+      if (formData.openRouterKey || formData.useOpenRouter !== undefined) {
+        await fetch('/api/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData),
+        });
+      }
+
       const res = await fetch('/api/settings/test-lmstudio');
       const data = await res.json();
       setTestResult(data);
+      
+      console.log('Connection test result:', data);
     } catch (error) {
+      console.error('Connection test failed:', error);
       setTestResult({ connected: false, service: 'Unknown' });
     } finally {
       setIsTesting(false);
