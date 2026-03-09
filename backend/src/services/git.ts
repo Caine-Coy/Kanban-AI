@@ -25,16 +25,26 @@ export class GitService {
    */
   async createBranch(branchName: string): Promise<void> {
     const status = await this.git.status();
-    
+
     // Ensure we're on main/master branch
     const mainBranch = await this.getMainBranch();
     if (status.current !== mainBranch) {
       await this.git.checkout(mainBranch);
     }
 
+    // Stash any local changes
+    if (status.files.length > 0) {
+      console.log('📝 Stashing local changes before creating branch...');
+      await this.git.stash(['push']);
+    }
+
     // Pull latest changes
     const settings = getSettings();
-    await this.git.pull(settings.gitRemote || 'origin', mainBranch);
+    try {
+      await this.git.pull(settings.gitRemote || 'origin', mainBranch);
+    } catch (error: any) {
+      console.warn('⚠️ Could not pull from remote (this is OK for local repos):', error.message);
+    }
 
     // Create and checkout new branch
     await this.git.checkout(['-b', branchName]);

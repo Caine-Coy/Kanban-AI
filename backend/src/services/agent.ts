@@ -101,6 +101,16 @@ export class AgentService {
    */
   private static async executeAgentTask(task: AgentTask, agentId: string): Promise<void> {
     const settings = getSettings();
+    
+    // Log full configuration for debugging
+    console.log('🤖 === Agent Task Started ===');
+    console.log(`🤖 Agent using: ${settings.useOpenRouter ? 'OpenRouter' : 'LM Studio'}`);
+    console.log(`📡 OpenRouter configured: ${!!settings.openRouterKey}`);
+    console.log(`🔑 API Key present: ${settings.openRouterKey ? 'Yes (' + settings.openRouterKey.substring(0, 10) + '...)' : 'No'}`);
+    console.log(`🌐 OpenRouter URL: ${settings.openRouterUrl}`);
+    console.log(`📦 Model: ${settings.openRouterModel}`);
+    console.log('🤖 =========================');
+    
     const lmStudio = new LMStudioService(
       settings.lmStudioUrl,
       settings.lmStudioModel,
