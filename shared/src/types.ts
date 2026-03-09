@@ -34,6 +34,7 @@ export interface Project {
   id: string;
   name: string;
   description?: string;
+  folderPath?: string;
   gitRemote: string;
   githubOwner?: string;
   githubRepo?: string;

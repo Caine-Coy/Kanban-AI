@@ -33,6 +33,8 @@ export function ProjectModal({ isOpen, onClose, onCreateProject }: ProjectModalP
 
   if (!isOpen) return null;
 
+  const slugifiedName = formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-slate-800 rounded-lg w-full max-w-lg">
@@ -54,8 +56,15 @@ export function ProjectModal({ isOpen, onClose, onCreateProject }: ProjectModalP
               className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="My Awesome Project"
               required
+              autoFocus
             />
           </div>
+
+          {slugifiedName && (
+            <div className="text-xs text-slate-500">
+              📁 Will be created at: <code className="bg-slate-700 px-2 py-1 rounded">Projects/{slugifiedName}/</code>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm text-slate-400 mb-1">

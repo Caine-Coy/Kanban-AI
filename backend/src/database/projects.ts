@@ -4,6 +4,7 @@ import type { Project } from 'shared';
 export interface CreateProjectData {
   name: string;
   description?: string;
+  folderPath?: string;
   gitRemote: string;
   githubOwner?: string;
   githubRepo?: string;
@@ -12,6 +13,7 @@ export interface CreateProjectData {
 export interface UpdateProjectData {
   name?: string;
   description?: string;
+  folderPath?: string;
   gitRemote?: string;
   githubOwner?: string;
   githubRepo?: string;
@@ -23,16 +25,17 @@ export function createProject(data: CreateProjectData): Project {
   const now = new Date().toISOString();
 
   const stmt = db.prepare(`
-    INSERT INTO projects (id, name, description, gitRemote, githubOwner, githubRepo, createdAt, updatedAt)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO projects (id, name, description, folderPath, gitRemote, githubOwner, githubRepo, createdAt, updatedAt)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  stmt.run(id, data.name, data.description || null, data.gitRemote, data.githubOwner || null, data.githubRepo || null, now, now);
+  stmt.run(id, data.name, data.description || null, data.folderPath || null, data.gitRemote, data.githubOwner || null, data.githubRepo || null, now, now);
 
   return {
     id,
     name: data.name,
     description: data.description || undefined,
+    folderPath: data.folderPath || undefined,
     gitRemote: data.gitRemote,
     githubOwner: data.githubOwner || undefined,
     githubRepo: data.githubRepo || undefined,
@@ -73,6 +76,10 @@ export function updateProject(id: string, data: UpdateProjectData): Project | un
   if (data.description !== undefined) {
     fields.push('description = ?');
     values.push(data.description);
+  }
+  if (data.folderPath !== undefined) {
+    fields.push('folderPath = ?');
+    values.push(data.folderPath);
   }
   if (data.gitRemote !== undefined) {
     fields.push('gitRemote = ?');
@@ -117,6 +124,7 @@ function mapRowToProject(row: any): Project {
     id: row.id,
     name: row.name,
     description: row.description || undefined,
+    folderPath: row.folderPath || undefined,
     gitRemote: row.gitRemote,
     githubOwner: row.githubOwner || undefined,
     githubRepo: row.githubRepo || undefined,

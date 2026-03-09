@@ -4,6 +4,7 @@ import { createTask, getTaskByTicketId, updateTask, getActiveTasks } from '../da
 import { getTicketById, updateTicket } from '../database/tickets.js';
 import { getIdleAgents, updateAgent } from '../database/agents.js';
 import { getSettings } from '../database/settings.js';
+import { getProjectById } from '../database/projects.js';
 import { GitService } from './git.js';
 import { LMStudioService } from './lmstudio.js';
 
@@ -48,10 +49,25 @@ export class AgentService {
 
     // Create a branch for this ticket
     const branchName = `ticket/${ticketId}-${this.slugify(ticket.title)}`;
-    
+
     try {
-      // Initialize git service and create branch
-      const gitService = new GitService();
+      // Get project folder path if ticket has a project
+      let gitService: GitService;
+      if (ticket.projectId) {
+        const project = getProjectById(ticket.projectId);
+        if (project?.folderPath) {
+          gitService = new GitService(project.folderPath);
+          console.log(`📂 Using project git repo: ${project.folderPath}`);
+        } else {
+          gitService = new GitService();
+          console.log('📂 Project has no folder, using default repo');
+        }
+      } else {
+        gitService = new GitService();
+        console.log('📂 No project, using default repo');
+      }
+      
+      // Create branch
       await gitService.createBranch(branchName);
 
       // Create the task

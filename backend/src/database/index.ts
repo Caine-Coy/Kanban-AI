@@ -26,6 +26,7 @@ export function setupDatabase(): void {
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
+      folderPath TEXT,
       gitRemote TEXT NOT NULL DEFAULT 'origin',
       githubOwner TEXT,
       githubRepo TEXT,

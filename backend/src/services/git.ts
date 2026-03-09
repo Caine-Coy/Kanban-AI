@@ -21,6 +21,13 @@ export class GitService {
   }
 
   /**
+   * Get the repository path
+   */
+  getRepoPath(): string {
+    return this.repoPath;
+  }
+
+  /**
    * Create a new branch from main/master
    */
   async createBranch(branchName: string): Promise<void> {
