@@ -11,7 +11,7 @@ export function getDatabase(): Database.Database {
 }
 
 export function setupDatabase(): void {
-  db = new Database('kanban.db');
+  db = new Database(':memory:');
   db.pragma('journal_mode = WAL');
 
   // Create tables

@@ -70,20 +70,28 @@ test.describe('Drag and Drop', () => {
 
 /**
  * End-to-End Test: Hello World Website Creation
- * 
+ *
  * This test simulates a complete user workflow:
  * 1. User creates tickets for building a Hello World website
  * 2. Tickets are moved to TODO column (triggering AI agents)
  * 3. AI agents implement HTML, CSS, and JavaScript
  * 4. Final result is a working Hello World website
+ *
+ * NOTE: This test is skipped in CI environments without AI configuration
  */
 test.describe('Hello World Website E2E Flow', () => {
-  test('complete workflow from tickets to working website', async ({ 
-    page, 
+  test('complete workflow from tickets to working website', async ({
+    page,
     createTicket,
     dragTicketToColumn,
-    waitForTicketInColumn 
+    waitForTicketInColumn
   }) => {
+    // Skip AI-dependent tests in CI
+    if (process.env.CI && !process.env.OPENROUTER_KEY) {
+      test.skip();
+      console.log('Skipping AI-dependent test in CI (no OPENROUTER_KEY)');
+      return;
+    }
     // Step 1: Verify the board loads correctly
     await expect(page.locator('h1:has-text("Kanban-AI")')).toBeVisible();
     await expect(page.locator('h2:has-text("Backlog")')).toBeVisible();

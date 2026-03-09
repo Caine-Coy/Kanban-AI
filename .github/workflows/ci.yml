@@ -54,24 +54,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build shared
         run: npm run build --workspace=shared
-      
-      - name: Run unit tests
+
+      - name: Run unit tests (skip external API tests)
         run: npm run test --workspace=backend
         env:
           CI: true
-      
+          SKIP_EXTERNAL_API_TESTS: true
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -85,28 +86,30 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
         working-directory: e2e
-      
+
       - name: Build application
         run: npm run build
-      
+
       - name: Run E2E tests
         run: npm run test:e2e --workspace=e2e
         env:
           CI: true
-      
+          # Set OPENROUTER_KEY secret to enable AI agent tests
+          OPENROUTER_KEY: ${{ secrets.OPENROUTER_KEY }}
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
@@ -114,7 +117,7 @@ jobs:
           name: playwright-report
           path: e2e/playwright-report/
           retention-days: 30
-      
+
       - name: Upload test videos
         uses: actions/upload-artifact@v4
         if: failure()

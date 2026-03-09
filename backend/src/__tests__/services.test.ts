@@ -31,7 +31,8 @@ describe('LMStudioService', () => {
       const service = new LMStudioService('http://localhost:1234', 'test-model');
       
       const result = await service.testConnection();
-      expect(result).toBe(true);
+      expect(result.connected).toBe(true);
+      expect(result.service).toBe('LM Studio');
     });
 
     it('should return false when LM Studio is not reachable', async () => {
@@ -41,7 +42,7 @@ describe('LMStudioService', () => {
       const service = new LMStudioService('http://localhost:1234', 'test-model');
       
       const result = await service.testConnection();
-      expect(result).toBe(false);
+      expect(result.connected).toBe(false);
     });
   });
 });

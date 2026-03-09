@@ -234,11 +234,18 @@ describe('API Integration Tests', () => {
     });
 
     describe('GET /api/settings/test-lmstudio', () => {
-      it('should test LM Studio connection', async () => {
+      it('should test LM Studio connection (skipped in CI)', async () => {
+        // Skip external API tests in CI environment
+        if (process.env.CI || process.env.SKIP_EXTERNAL_API_TESTS) {
+          console.log('Skipping external API test in CI');
+          return;
+        }
+
         const response = await request(app).get('/api/settings/test-lmstudio');
 
         expect(response.status).toBe(200);
         expect(response.body.connected).toBeDefined();
+        expect(response.body.service).toBeDefined();
       });
     });
   });
