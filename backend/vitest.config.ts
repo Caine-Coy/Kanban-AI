@@ -1,15 +1,14 @@
 import { defineConfig } from 'vitest/config';
+import path from 'path';
+import dotenv from 'dotenv';
+
+// Load .env from project root (parent directory)
+dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
 
 export default defineConfig({
   test: {
-    globals: true,
     environment: 'node',
-    include: ['src/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      include: ['src/**/*.{ts,js}'],
-      exclude: ['src/**/__tests__/**', 'src/**/*.d.ts'],
-    },
+    include: ['src/**/*.{test,spec}.{js,ts}'],
+    exclude: ['**/node_modules/**', '**/dist/**'],
   },
 });
