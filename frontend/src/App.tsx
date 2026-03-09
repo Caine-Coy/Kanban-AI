@@ -289,6 +289,7 @@ function App() {
           onClose={() => setIsTicketModalOpen(false)}
           ticket={selectedTicket}
           onSuccess={fetchBoard}
+          projectId={selectedProjectId}
         />
 
         <ProjectModal

@@ -6,9 +6,10 @@ interface TicketModalProps {
   onClose: () => void;
   ticket: Ticket | null;
   onSuccess?: () => void;
+  projectId?: string;
 }
 
-export function TicketModal({ isOpen, onClose, ticket, onSuccess }: TicketModalProps) {
+export function TicketModal({ isOpen, onClose, ticket, onSuccess, projectId }: TicketModalProps) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -46,7 +47,7 @@ export function TicketModal({ isOpen, onClose, ticket, onSuccess }: TicketModalP
         });
 
         if (!res.ok) throw new Error('Failed to update ticket');
-        
+
         // Refresh the board after update
         if (onSuccess) {
           onSuccess();
@@ -56,11 +57,11 @@ export function TicketModal({ isOpen, onClose, ticket, onSuccess }: TicketModalP
         const res = await fetch('/api/tickets', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData),
+          body: JSON.stringify({ ...formData, projectId }),
         });
 
         if (!res.ok) throw new Error('Failed to create ticket');
-        
+
         // Refresh the board to show the new ticket
         if (onSuccess) {
           onSuccess();

@@ -149,6 +149,8 @@ test.describe('Drag and Drop', () => {
 test.describe('Hello World Website E2E Flow', () => {
   test('complete workflow from tickets to working website', async ({
     page,
+    createProject,
+    selectProject,
     createTicket,
     dragTicketToColumn,
     waitForTicketInColumn
@@ -159,6 +161,15 @@ test.describe('Hello World Website E2E Flow', () => {
       console.log('Skipping AI-dependent test in CI (no OPENROUTER_KEY)');
       return;
     }
+
+    // Step 0: Create a project first (this sets up the git repository)
+    const project = await createProject('Hello World Test', 'E2E test project for Hello World website');
+    console.log(`✅ Created project: ${project.name} at ${project.folderPath}`);
+
+    // Select the project in the UI so tickets are associated with it
+    await selectProject(project.id);
+    console.log(`📋 Selected project: ${project.id}`);
+
     // Step 1: Verify the board loads correctly
     await expect(page.locator('h1:has-text("Kanban-AI")')).toBeVisible();
     await expect(page.locator('h2:has-text("Backlog")')).toBeVisible();
