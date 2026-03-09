@@ -6,6 +6,17 @@ import { ticketsRouter } from '../routes/tickets.js';
 import { agentsRouter } from '../routes/agents.js';
 import { settingsRouter } from '../routes/settings.js';
 import { tasksRouter } from '../routes/tasks.js';
+import { AgentService } from '../services/agent.js';
+import { createAgent } from '../database/agents.js';
+
+// Mock Socket.IO server for tests
+const mockIO = {
+  emit: () => {},
+  to: () => ({ emit: () => {} }),
+  in: () => ({ emit: () => {} }),
+  on: () => {},
+  off: () => {},
+} as any;
 
 // Create test app
 const app = express();
@@ -18,6 +29,9 @@ app.use('/api/tasks', tasksRouter);
 describe('API Integration Tests', () => {
   beforeAll(() => {
     setupDatabase();
+    AgentService.initialize(mockIO);
+    // Create a test agent for assignment tests
+    createAgent({ name: 'Test-Agent-1' });
   });
 
   describe('Tickets API', () => {
@@ -169,12 +183,17 @@ describe('API Integration Tests', () => {
         createdTicketId = createResponse.body.id;
       });
 
-      it('should handle ticket assignment (no agents available)', async () => {
+      it('should assign ticket to agent when available', async () => {
         const response = await request(app)
           .post(`/api/tickets/${createdTicketId}/assign`);
 
-        // Should return 500 when AgentService not initialized in test context
-        expect([200, 500]).toContain(response.status);
+        // Should return 201 when agent is available and task is created
+        expect(response.status).toBe(201);
+        expect(response.body.task).toBeDefined();
+        expect(response.body.task.ticketId).toBe(createdTicketId);
+        expect(response.body.task.agentId).toBeDefined();
+        expect(response.body.task.branch).toBeDefined();
+        expect(response.body.task.branch).toContain(createdTicketId);
       });
     });
   });
