@@ -287,6 +287,9 @@ export class AgentService {
         currentTicketId: undefined,
       });
 
+      // Revert ticket status back to TODO so it can be retried
+      updateTicket(task.ticketId, { status: 'TODO' });
+
       // Notify clients
       this.io.emit('TASK_STATUS_CHANGED', {
         taskId: task.id,
@@ -300,6 +303,14 @@ export class AgentService {
         status: 'IDLE',
         timestamp: new Date().toISOString(),
       });
+
+      this.io.emit('TICKET_UPDATED', {
+        ticketId: task.ticketId,
+        status: 'TODO',
+        timestamp: new Date().toISOString(),
+      });
+
+      console.log(`🔄 Ticket ${task.ticketId} reverted to TODO for retry`);
     }
   }
 
