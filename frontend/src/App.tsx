@@ -25,6 +25,8 @@ function App() {
     moveTicket,
     updateSettings,
     createProject,
+    createAgent,
+    deleteAgent,
   } = useBoardStore();
 
   const { connected, connect, disconnect } = useWebSocket();
@@ -156,7 +158,12 @@ function App() {
 
           {/* Agent Panel */}
           <aside className="w-80 bg-slate-800 border-l border-slate-700 overflow-y-auto">
-            <AgentPanel agents={agents} tasks={tasks} />
+            <AgentPanel
+              agents={agents}
+              tasks={tasks}
+              onCreateAgent={createAgent}
+              onDeleteAgent={deleteAgent}
+            />
           </aside>
         </div>
 

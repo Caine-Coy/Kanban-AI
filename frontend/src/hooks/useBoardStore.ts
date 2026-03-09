@@ -176,6 +176,38 @@ export function useBoardStore() {
     }
   };
 
+  const createAgent = async (name: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/agents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!res.ok) throw new Error('Failed to create agent');
+
+      const agent = await res.json();
+      setAgents((prev) => [...prev, agent]);
+      return agent;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  const deleteAgent = async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/agents/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!res.ok) throw new Error('Failed to delete agent');
+
+      setAgents((prev) => prev.filter((a) => a.id !== id));
+    } catch (err) {
+      throw err;
+    }
+  };
+
   return {
     tickets,
     columns,
@@ -194,5 +226,7 @@ export function useBoardStore() {
     moveTicket,
     updateSettings,
     createProject,
+    createAgent,
+    deleteAgent,
   };
 }

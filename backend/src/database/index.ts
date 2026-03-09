@@ -88,7 +88,7 @@ export function setupDatabase(): void {
     { key: 'testTimeout', value: '60000' },
     { key: 'openRouterUrl', value: 'https://openrouter.ai/api/v1' },
     { key: 'openRouterModel', value: 'google/gemma-3-1b-itb-freetrial:free' },
-    { key: 'useOpenRouter', value: 'true' },
+    { key: 'useOpenRouter', value: 'true' }, // Default to OpenRouter
   ];
 
   const insert = db.prepare(`

@@ -14,7 +14,7 @@ export function getSettings(): Settings {
     testCommand: 'npm test',
     openRouterUrl: 'https://openrouter.ai/api/v1',
     openRouterModel: 'google/gemma-3-1b-itb-freetrial:free',
-    useOpenRouter: false,
+    useOpenRouter: true, // Default to OpenRouter for easier setup
   };
 
   for (const row of rows) {

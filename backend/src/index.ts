@@ -6,6 +6,7 @@ import { setupDatabase } from './database/index.js';
 import { setupRoutes } from './routes/index.js';
 import { setupWebSocket } from './websocket/index.js';
 import { AgentService } from './services/agent.js';
+import { getIdleAgents, createAgent } from './database/agents.js';
 
 const PORT = process.env.PORT || 3000;
 
@@ -18,6 +19,13 @@ app.use(express.json());
 
 // Initialize database
 setupDatabase();
+
+// Create default agent if none exist
+const idleAgents = getIdleAgents();
+if (idleAgents.length === 0) {
+  createAgent({ name: 'OpenRouter-Agent-1' });
+  console.log('🤖 Default agent created: OpenRouter-Agent-1');
+}
 
 // Setup REST API routes
 setupRoutes(app);
