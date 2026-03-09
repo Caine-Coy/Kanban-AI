@@ -46,3 +46,6 @@ temp/
 
 # Qwen Code
 .qwen/
+
+# Project repositories (each project has its own git repo)
+Projects/
