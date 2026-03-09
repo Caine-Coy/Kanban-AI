@@ -5,9 +5,10 @@ interface ProjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   onCreateProject: (data: { name: string; description?: string; gitRemote: string }) => Promise<Project>;
+  isFirstProject?: boolean;
 }
 
-export function ProjectModal({ isOpen, onClose, onCreateProject }: ProjectModalProps) {
+export function ProjectModal({ isOpen, onClose, onCreateProject, isFirstProject }: ProjectModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -21,8 +22,15 @@ export function ProjectModal({ isOpen, onClose, onCreateProject }: ProjectModalP
 
     try {
       await onCreateProject(formData);
-      onClose();
-      setFormData({ name: '', description: '', gitRemote: 'origin' });
+      if (isFirstProject) {
+        // Don't close modal on first project, let user know it was created
+        setFormData({ name: '', description: '', gitRemote: 'origin' });
+        alert('✅ Project created! You can now start creating tickets.');
+        onClose();
+      } else {
+        onClose();
+        setFormData({ name: '', description: '', gitRemote: 'origin' });
+      }
     } catch (error) {
       console.error('Failed to create project:', error);
       alert('Failed to create project. Please try again.');

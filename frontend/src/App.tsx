@@ -35,6 +35,7 @@ function App() {
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [aiProviderStatus, setAiProviderStatus] = useState<{ connected: boolean; service: string } | null>(null);
+  const [showProjectRequired, setShowProjectRequired] = useState(false);
 
   useEffect(() => {
     // Initial fetch
@@ -50,6 +51,16 @@ function App() {
       disconnect();
     };
   }, [selectedProjectId]);
+
+  useEffect(() => {
+    // Check if user needs to create a project
+    if (!isLoading && projects.length === 0) {
+      setShowProjectRequired(true);
+      setIsProjectModalOpen(true);
+    } else {
+      setShowProjectRequired(false);
+    }
+  }, [projects, isLoading]);
 
   const testAiProvider = async () => {
     try {
@@ -102,6 +113,30 @@ function App() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-xl text-red-500">Error: {error}</div>
       </div>
+    );
+  }
+
+  // Show project required overlay if no projects exist
+  if (showProjectRequired) {
+    return (
+      <DndContext onDragEnd={handleDragEnd}>
+        <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6">
+          <div className="max-w-md w-full">
+            <div className="bg-slate-800 rounded-lg p-8 text-center">
+              <h1 className="text-2xl font-bold text-white mb-4">Welcome to Kanban-AI! 🎉</h1>
+              <p className="text-slate-400 mb-6">
+                To get started, you need to create your first project. Each project has its own git repository where AI agents will work on tickets.
+              </p>
+              <button
+                onClick={() => setIsProjectModalOpen(true)}
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors font-medium"
+              >
+                + Create Your First Project
+              </button>
+            </div>
+          </div>
+        </div>
+      </DndContext>
     );
   }
 
@@ -217,6 +252,7 @@ function App() {
           isOpen={isProjectModalOpen}
           onClose={() => setIsProjectModalOpen(false)}
           onCreateProject={createProject}
+          isFirstProject={projects.length === 0}
         />
       </div>
     </DndContext>

@@ -58,12 +58,20 @@ projectsRouter.post('/', async (req, res) => {
     const projectsDir = path.join(process.cwd(), 'Projects');
     const projectFolder = path.join(projectsDir, slugifiedName);
 
+    console.log(`📂 process.cwd(): ${process.cwd()}`);
+    console.log(`📂 projectsDir: ${projectsDir}`);
+    console.log(`📂 projectFolder: ${projectFolder}`);
+
     // Create Projects directory if it doesn't exist
     await fs.mkdir(projectsDir, { recursive: true });
 
     // Create project folder
     await fs.mkdir(projectFolder, { recursive: true });
     console.log(`📁 Created project folder: ${projectFolder}`);
+
+    // Verify folder exists
+    const stats = await fs.stat(projectFolder);
+    console.log(`✅ Folder exists: ${stats.isDirectory()}`);
 
     // Initialize git repository
     const git = simpleGit(projectFolder);
