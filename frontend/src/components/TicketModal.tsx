@@ -87,9 +87,16 @@ export function TicketModal({ isOpen, onClose, ticket, onSuccess }: TicketModalP
       });
 
       if (!res.ok) throw new Error('Failed to delete ticket');
+      
+      // Refresh the board after deletion
+      if (onSuccess) {
+        onSuccess();
+      }
+      
       onClose();
     } catch (error) {
       console.error('Failed to delete ticket:', error);
+      alert('Failed to delete ticket: ' + (error as Error).message);
     }
   };
 
