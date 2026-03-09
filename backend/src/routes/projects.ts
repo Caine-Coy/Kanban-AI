@@ -75,23 +75,24 @@ projectsRouter.post('/', async (req, res) => {
 
     // Initialize git repository
     const git = simpleGit(projectFolder);
-    
-    // Check if already a git repo
+
+    // Check if already a git repo root (not just inside another repo)
+    const gitDirPath = path.join(projectFolder, '.git');
     try {
-      await git.revparse(['--git-dir']);
+      await fs.access(gitDirPath);
       console.log(`📂 Project folder is already a git repository`);
     } catch {
       // Not a git repo, initialize
       await git.init();
       console.log(`🔧 Initialized git repository in ${projectFolder}`);
-      
+
       // Set default branch to main
       try {
         await git.branch(['-m', 'main']);
       } catch {
         // Branch might already be named main
       }
-      
+
       // Create initial commit
       await fs.writeFile(path.join(projectFolder, 'README.md'), `# ${name}\n\n${description || 'Project created with Kanban-AI'}\n`);
       await git.add('.');

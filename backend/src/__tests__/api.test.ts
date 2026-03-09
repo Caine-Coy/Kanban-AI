@@ -6,6 +6,7 @@ import { ticketsRouter } from '../routes/tickets.js';
 import { agentsRouter } from '../routes/agents.js';
 import { settingsRouter } from '../routes/settings.js';
 import { tasksRouter } from '../routes/tasks.js';
+import { projectsRouter } from '../routes/projects.js';
 import { AgentService } from '../services/agent.js';
 import { createAgent } from '../database/agents.js';
 
@@ -25,13 +26,28 @@ app.use('/api/tickets', ticketsRouter);
 app.use('/api/agents', agentsRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/tasks', tasksRouter);
+app.use('/api/projects', projectsRouter);
 
 describe('API Integration Tests', () => {
-  beforeAll(() => {
+  let testProjectId: string;
+
+  beforeAll(async () => {
     setupDatabase();
     AgentService.initialize(mockIO);
     // Create a test agent for assignment tests
     createAgent({ name: 'Test-Agent-1' });
+
+    // Create a test project (this creates the Projects/test folder with git repo)
+    const projectResponse = await request(app)
+      .post('/api/projects')
+      .send({
+        name: 'Test',
+        description: 'Test project for API tests',
+        gitRemote: 'origin',
+      });
+
+    testProjectId = projectResponse.body.id;
+    console.log(`✅ Created test project: ${projectResponse.body.name} at ${projectResponse.body.folderPath}`);
   });
 
   describe('Tickets API', () => {
