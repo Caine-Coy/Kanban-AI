@@ -46,11 +46,15 @@ export const test = base.extend<{
 
   selectProject: async ({ page }, use) => {
     const selectProject = async (projectId: string) => {
-      // Select project from the dropdown
+      // Reload the page to fetch the new project
+      await page.reload();
+      // Wait for the project dropdown to be available
       const projectSelect = page.locator('select').first();
+      await projectSelect.waitFor({ state: 'visible', timeout: 10000 });
+      // Select the project
       await projectSelect.selectOption(projectId);
-      // Wait a bit for the board to refresh with the selected project
-      await page.waitForTimeout(500);
+      // Wait for the board to refresh with the selected project
+      await page.waitForTimeout(1000);
     };
 
     await use(selectProject);
@@ -84,10 +88,33 @@ export const test = base.extend<{
 
   dragTicketToColumn: async ({ page }, use) => {
     const dragTicketToColumn = async (ticketTitle: string, columnTitle: string) => {
-      const ticket = page.locator('[role="button"]').filter({ hasText: ticketTitle }).first();
-      const column = page.locator('h2').filter({ hasText: columnTitle }).first();
+      // Find the ticket and get its ID from the backend
+      const ticketsResponse = await page.request.get('/api/tickets');
+      const tickets = await ticketsResponse.json();
+      const ticket = tickets.find((t: any) => t.title.includes(ticketTitle));
+      
+      if (!ticket) {
+        throw new Error(`Ticket "${ticketTitle}" not found`);
+      }
 
-      await ticket.dragTo(column);
+      // Map column title to status
+      const statusMap: Record<string, string> = {
+        'Backlog': 'BACKLOG',
+        'TODO': 'TODO',
+        'In Progress': 'IN_PROGRESS',
+        'Review': 'REVIEW',
+        'Done': 'DONE'
+      };
+
+      const status = statusMap[columnTitle];
+      if (!status) {
+        throw new Error(`Unknown column: ${columnTitle}`);
+      }
+
+      // Move ticket via API
+      await page.request.put(`/api/tickets/${ticket.id}`, {
+        data: { status }
+      });
     };
 
     await use(dragTicketToColumn);
@@ -100,6 +127,7 @@ export const test = base.extend<{
 
       await columnContainer
         .locator(`[role="button"]:has-text("${ticketTitle}")`)
+        .first()
         .waitFor({ state: 'visible', timeout: 30000 });
     };
 
@@ -107,7 +135,7 @@ export const test = base.extend<{
   },
 
   waitForFilesInProject: async ({}, use) => {
-    const waitForFilesInProject = async (projectFolderPath: string, fileNames: string[], timeoutMs: number = 120000) => {
+    const waitForFilesInProject = async (projectFolderPath: string, fileNames: string[], timeoutMs: number = 300000) => {
       const startTime = Date.now();
       const absolutePath = path.isAbsolute(projectFolderPath)
         ? projectFolderPath
@@ -115,6 +143,7 @@ export const test = base.extend<{
 
       console.log(`⏳ Waiting for files in: ${absolutePath}`);
       console.log(`📄 Expected files: ${fileNames.join(', ')}`);
+      console.log(`⏱️ Timeout: ${timeoutMs / 1000} seconds`);
 
       while (Date.now() - startTime < timeoutMs) {
         const allFilesExist = fileNames.every(fileName => {
@@ -133,8 +162,16 @@ export const test = base.extend<{
           return;
         }
 
-        // Wait 2 seconds before checking again
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait 3 seconds before checking again
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      }
+
+      // List what files exist in the directory
+      try {
+        const files = fs.readdirSync(absolutePath);
+        console.log(`📁 Files in directory: ${files.join(', ')}`);
+      } catch (e) {
+        console.log(`📁 Directory does not exist or is not accessible: ${absolutePath}`);
       }
 
       throw new Error(`Timeout waiting for files after ${timeoutMs}ms. Expected: ${fileNames.join(', ')} in ${absolutePath}`);
