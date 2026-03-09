@@ -66,7 +66,43 @@ export class AgentService {
         gitService = new GitService();
         console.log('📂 No project, using default repo');
       }
-      
+
+      // Check if git service is initialized (directory exists)
+      if (!gitService.isInitialized()) {
+        console.warn('⚠️ Git repository not found, skipping branch creation');
+        // Create the task without git operations
+        const task = createTask({
+          ticketId,
+          branch: branchName,
+          agentId: agent.id,
+        });
+
+        // Update ticket with branch info
+        updateTicket(ticketId, { branch: branchName });
+
+        // Update agent status
+        updateAgent(agent.id, {
+          status: 'WORKING',
+          currentTicketId: ticketId,
+        });
+
+        // Notify clients
+        this.io.emit('TASK_STATUS_CHANGED', {
+          task,
+          timestamp: new Date().toISOString(),
+        });
+
+        this.io.emit('AGENT_STATUS_CHANGED', {
+          agentId: agent.id,
+          status: 'WORKING',
+          ticketId,
+          timestamp: new Date().toISOString(),
+        });
+
+        console.log(`📋 Assigned ticket ${ticketId} to agent ${agent.name} on branch ${branchName} (no git)`);
+        return task;
+      }
+
       // Create branch
       await gitService.createBranch(branchName);
 

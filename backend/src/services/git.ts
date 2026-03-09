@@ -12,15 +12,20 @@ export interface TestResult {
 }
 
 export class GitService {
-  private git: SimpleGit;
+  private git: SimpleGit | null = null;
   private repoPath: string;
 
   constructor(repoPath?: string) {
     // Use provided path, or DEFAULT_REPO_PATH env var, or default to backend/Projects/test
-    this.repoPath = repoPath || 
-                    process.env.DEFAULT_REPO_PATH || 
+    this.repoPath = repoPath ||
+                    process.env.DEFAULT_REPO_PATH ||
                     `${process.cwd()}/Projects/test`;
-    this.git = simpleGit(this.repoPath);
+    try {
+      this.git = simpleGit(this.repoPath);
+    } catch (error) {
+      console.warn(`⚠️ Could not initialize git for path: ${this.repoPath}`);
+      this.git = null;
+    }
   }
 
   /**
@@ -31,9 +36,19 @@ export class GitService {
   }
 
   /**
+   * Check if git is initialized (directory exists)
+   */
+  isInitialized(): boolean {
+    return this.git !== null;
+  }
+
+  /**
    * Create a new branch from main/master
    */
   async createBranch(branchName: string): Promise<void> {
+    if (!this.git) {
+      throw new Error('GitService not initialized - repository path does not exist');
+    }
     const status = await this.git.status();
 
     // Ensure we're on main/master branch
@@ -64,6 +79,9 @@ export class GitService {
    * Get the main branch name (main or master)
    */
   private async getMainBranch(): Promise<string> {
+    if (!this.git) {
+      throw new Error('GitService not initialized - repository path does not exist');
+    }
     const branches = await this.git.branchLocal();
     if (branches.all.includes('main')) {
       return 'main';
@@ -78,6 +96,9 @@ export class GitService {
    * Write a file to the repository
    */
   async writeFile(filePath: string, content: string): Promise<void> {
+    if (!this.git) {
+      throw new Error('GitService not initialized - repository path does not exist');
+    }
     const fs = await import('fs/promises');
     const path = await import('path');
 
@@ -95,6 +116,9 @@ export class GitService {
    * Commit all staged changes
    */
   async commitChanges(message: string): Promise<void> {
+    if (!this.git) {
+      throw new Error('GitService not initialized - repository path does not exist');
+    }
     await this.git.add('.');
     const status = await this.git.status();
     
@@ -107,6 +131,9 @@ export class GitService {
    * Push the current branch to remote
    */
   async pushBranch(branchName?: string): Promise<void> {
+    if (!this.git) {
+      throw new Error('GitService not initialized - repository path does not exist');
+    }
     const settings = getSettings();
     const remote = settings.gitRemote || 'origin';
     
@@ -124,6 +151,9 @@ export class GitService {
    * Run tests in the repository
    */
   async runTests(command: string, timeout: number = 60000): Promise<TestResult> {
+    if (!this.git) {
+      throw new Error('GitService not initialized - repository path does not exist');
+    }
     const startTime = Date.now();
 
     try {
@@ -157,6 +187,9 @@ export class GitService {
    * Get repository structure (list of files)
    */
   async getRepoStructure(): Promise<string> {
+    if (!this.git) {
+      throw new Error('GitService not initialized - repository path does not exist');
+    }
     const fs = await import('fs/promises');
     const path = await import('path');
 
@@ -237,6 +270,9 @@ export class GitService {
    * Checkout a branch
    */
   async checkoutBranch(branchName: string): Promise<void> {
+    if (!this.git) {
+      throw new Error('GitService not initialized - repository path does not exist');
+    }
     await this.git.checkout(branchName);
   }
 
@@ -244,6 +280,9 @@ export class GitService {
    * Get current branch name
    */
   async getCurrentBranch(): Promise<string> {
+    if (!this.git) {
+      throw new Error('GitService not initialized - repository path does not exist');
+    }
     const status = await this.git.status();
     return status.current || 'unknown';
   }
